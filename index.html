@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>Unifilar – Complexo Eólico Delta</title>
+<style>
+:root {
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2330;
+  --border:#30363d;--border2:#444c56;
+  --text:#e6edf3;--text2:#8b949e;--text3:#656d76;
+  --green:#3fb950;--green-dim:#1a4020;--green-glow:rgba(63,185,80,.15);
+  --amber:#d29922;--amber-dim:#3d2e0a;
+  --red:#f85149;--red-dim:#3d1515;
+  --blue:#388bfd;--blue-dim:#0d2244;
+  --teal:#39d353;--purple:#a371f7;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh;}
+
+/* HEADER */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:14px;position:-webkit-sticky;position:sticky;top:0;z-index:200;}
+header h1{font-size:14px;font-weight:600;}
+.subtitle{font-size:11px;color:var(--text2);}
+.hstats{margin-left:auto;display:flex;gap:18px;}
+.hstat .val{font-size:15px;font-weight:600;color:var(--green);font-variant-numeric:tabular-nums;}
+.hstat .lbl{font-size:10px;color:var(--text3);}
+.sim-badge{background:var(--amber-dim);border:1px solid var(--amber);border-radius:4px;padding:2px 8px;font-size:10px;color:var(--amber);display:none;}
+.sim-badge.active{display:inline-block;}
+
+/* TABS */
+.tab-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab-bar::-webkit-scrollbar{height:3px;}
+.tab-bar::-webkit-scrollbar-thumb{background:var(--border2);}
+.tab{padding:9px 13px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--text);border-bottom-color:var(--green);}
+.tab.se-tab.active{border-bottom-color:#79c0ff;color:#79c0ff;}
+.tab.elev-tab.active{border-bottom-color:#f78166;color:#f78166;}
+.tab.log-tab.active{border-bottom-color:var(--purple);color:var(--purple);}
+.tab .badge{background:var(--red);color:#fff;border-radius:8px;padding:0 5px;font-size:9px;font-weight:700;margin-left:4px;vertical-align:middle;}
+
+/* CONTROLS */
+.controls{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.lbl-sm{font-size:11px;color:var(--text3);margin-right:2px;}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:5px;padding:4px 9px;font-size:11px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.btn:hover{border-color:var(--border2);color:var(--text);}
+.btn.active{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.btn.danger{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.btn.warn{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.sep{width:1px;background:var(--border);height:18px;margin:0 3px;}
+
+/* PAGES */
+.page{display:none;padding:16px;}
+.page.active{display:block;}
+
+/* PARQUE HEADER */
+.parque-header-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.parque-title{font-size:18px;font-weight:700;}
+.parque-stats{display:flex;gap:18px;}
+.pstat .pval{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;}
+.pstat .plbl{font-size:10px;color:var(--text3);}
+
+/* WIND PANEL per parque */
+.wind-panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+.wind-parque{display:flex;flex-direction:column;gap:4px;min-width:200px;}
+.wind-parque label{font-size:11px;color:var(--text2);display:flex;justify-content:space-between;}
+.wind-parque input[type=range]{width:100%;accent-color:var(--teal);cursor:pointer;}
+.wind-speed-val{font-size:13px;font-weight:700;color:var(--teal);font-variant-numeric:tabular-nums;}
+.wind-mw-val{font-size:11px;color:var(--text3);}
+
+/* SE section */
+.se-section{margin-bottom:18px;}
+.se-section-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.circuits-grid{display:flex;flex-wrap:wrap;gap:8px;}
+
+/* CIRCUIT CARD */
+.cir{border-radius:7px;border:1px solid var(--border);background:var(--bg3);width:155px;overflow:hidden;cursor:pointer;transition:border-color .2s,box-shadow .2s;}
+.cir:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.cir.energized{border-color:#3fb95055;}
+.cir.tripped{border-color:var(--amber);}
+.cir.fault{border-color:var(--red);}
+.cir.curtailed{border-color:#79c0ff55;background:#0d1e2e;}
+.cir-top{padding:5px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cir-id{font-size:11px;font-weight:700;font-family:monospace;color:var(--blue);}
+.cir-body{padding:6px 8px 8px;}
+.cir-label{font-size:9px;color:var(--text3);margin-bottom:2px;font-style:italic;}
+.cir-mw{font-size:10px;color:var(--text2);margin-bottom:5px;}
+.cir-curtail{font-size:9px;color:#79c0ff;display:none;}
+.cir.curtailed .cir-curtail{display:block;}
+
+/* WTG */
+.wtg-grid{display:flex;flex-wrap:wrap;gap:3px;}
+.w{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:var(--text3);cursor:pointer;transition:all .15s;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.w:hover{transform:scale(1.2);border-color:var(--border2);}
+.w.on{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.w.tripped{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.w.fault{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.w.curtailed{background:#0d2244;border-color:#388bfd88;color:#388bfd;}
+
+/* BREAKER */
+.brk{width:10px;height:14px;border:1.5px solid var(--border);border-radius:2px;display:inline-block;position:relative;cursor:pointer;transition:border-color .15s;}
+.brk.closed{border-color:var(--green);}
+.brk.open{border-color:var(--amber);}
+.brk.fault{border-color:var(--red);}
+.brk::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:4px;border-radius:50%;background:currentColor;}
+.brk.open::after,.brk.fault::after{opacity:0;}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.status-dot.on{background:var(--green);box-shadow:0 0 4px var(--green);}
+.status-dot.off{background:var(--text3);}
+.status-dot.tripped{background:var(--amber);}
+.status-dot.fault{background:var(--red);}
+.status-dot.curtailed{background:#388bfd;}
+
+/* SE PAGE */
+.se-page-card{background:var(--bg2);border-radius:10px;padding:16px;max-width:760px;}
+.se-page-card.kv138{border:1px solid #79c0ff44;}
+.se-page-card.kv500{border:1px solid #f7816644;}
+.se-page-title{font-size:14px;font-weight:700;margin-bottom:12px;}
+.se-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.se-row .k{color:var(--text2);}
+.se-row .v{font-weight:500;font-family:monospace;}
+.trafo-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.trafo-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-width:150px;cursor:pointer;transition:all .2s;position:relative;}
+.trafo-card:hover{border-color:var(--border2);}
+.trafo-card.on{border-color:#79c0ff55;}
+.trafo-card.off{border-color:var(--amber);opacity:.7;}
+.trafo-card.fault{border-color:var(--red);}
+.trafo-label{font-size:10px;color:var(--text3);margin-bottom:4px;}
+.trafo-spec{font-size:11px;font-weight:600;}
+.trafo-mw{font-size:12px;font-weight:700;color:var(--green);margin-top:6px;font-variant-numeric:tabular-nums;}
+.trafo-status{font-size:10px;margin-top:3px;}
+.trafo-brk{position:absolute;top:8px;right:8px;}
+
+/* LOG PAGE */
+.log-toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;}
+.log-filter{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer;}
+.log-filter.active{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+.log-table{width:100%;border-collapse:collapse;font-size:12px;}
+.log-table th{text-align:left;padding:6px 10px;border-bottom:1px solid var(--border2);color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.log-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.log-table tr:hover td{background:var(--bg2);}
+.log-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;}
+.log-tag.FALHA{background:var(--red-dim);color:var(--red);}
+.log-tag.TRIP{background:var(--amber-dim);color:var(--amber);}
+.log-tag.CURTAILMENT{background:var(--blue-dim);color:var(--blue);}
+.log-tag.VENTO{background:#1a2e1a;color:var(--teal);}
+.log-tag.TRAFO{background:#2a1a2e;color:var(--purple);}
+.log-tag.LINHA{background:#2e1a1a;color:var(--red);}
+.log-tag.NORMAL{background:var(--green-dim);color:var(--green);}
+.log-empty{text-align:center;color:var(--text3);padding:40px;font-size:12px;}
+
+/* SIDE PANEL */
+#side-panel{position:fixed;right:0;top:0;bottom:0;width:300px;background:var(--bg2);border-left:1px solid var(--border);padding:16px;transform:translateX(100%);transition:transform .25s;z-index:300;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+@media(max-width:400px){#side-panel{width:100%;}}
+#side-panel.open{transform:translateX(0);}
+#panel-close{float:right;background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;}
+.panel-title{font-size:14px;font-weight:600;margin-bottom:12px;}
+.panel-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.panel-row .key{color:var(--text2);}
+.panel-row .val{font-weight:500;font-family:monospace;}
+.panel-actions{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.panel-btn{padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:12px;text-align:left;transition:all .15s;}
+.panel-btn.green{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+.panel-btn.red{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+.panel-btn.amber{border-color:var(--amber);color:var(--amber);background:var(--amber-dim);}
+.panel-btn.blue{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+
+/* WIND CURVE MINI */
+.curve-bar{height:4px;border-radius:2px;background:var(--border);margin-top:6px;position:relative;overflow:visible;}
+.curve-fill{height:100%;border-radius:2px;background:var(--teal);transition:width .5s;}
+.curve-label{font-size:9px;color:var(--text3);display:flex;justify-content:space-between;margin-top:2px;}
+
+/* LEGEND */
+.legend{background:var(--bg2);border-top:1px solid var(--border);padding:8px 16px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--text2);}
+.leg-item{display:flex;align-items:center;gap:5px;}
+
+/* TOOLTIP */
+#tooltip{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-size:11px;pointer-events:none;z-index:999;display:none;max-width:220px;}
+
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulsing{animation:pulse 1.2s ease-in-out infinite;}
+
+/* UNIFILAR DIAGRAM */
+.unifilar-wrap{padding:16px;overflow-x:auto;}
+.unifilar-selector{display:flex;flex-wrap:nowrap;gap:6px;margin-bottom:14px;align-items:center;overflow-x:auto;cursor:grab;user-select:none;padding-bottom:4px;}
+.unifilar-selector:active{cursor:grabbing;}
+.unifilar-selector::-webkit-scrollbar{height:3px;}
+.unifilar-selector::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.ucir-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer;transition:all .15s;font-family:monospace;flex-shrink:0;}
+.ucir-btn:hover{border-color:var(--border2);color:var(--text);}
+.ucir-btn.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+.upar-label{font-size:11px;font-weight:600;color:var(--text2);margin-right:2px;white-space:nowrap;flex-shrink:0;}
+.ucir-group{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;margin-right:10px;}
+.ucir-group-sep{width:1px;background:var(--border);height:20px;margin:0 4px;flex-shrink:0;}
+.unifilar-diagram-area{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow-x:auto;min-height:320px;padding:0;cursor:grab;-webkit-overflow-scrolling:touch;}
+.unifilar-diagram-area:active{cursor:grabbing;}
+#unifilar-svg-container{min-width:800px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">⚡</span><h1>Complexo Eólico Delta</h1></div>
+    <div class="subtitle">Diagrama Unifilar Interativo · 34,5 / 138 / 500 kV</div>
+  </div>
+  <div class="hstats">
+    <div class="hstat"><div class="val" id="stat-mw">0,0</div><div class="lbl">MW online</div></div>
+    <div class="hstat"><div class="val" id="stat-wtg">0</div><div class="lbl">WTGs online</div></div>
+    <div class="hstat"><div class="val" id="stat-disp" style="color:var(--blue)">0%</div><div class="lbl">Disponibilidade</div></div>
+    <div class="hstat"><div class="val" id="stat-curtail" style="color:#79c0ff">0,0</div><div class="lbl">MW curtailed</div></div>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab('overview')" id="tab-overview">🗺 Visão Geral</div>
+  <div class="tab" onclick="showTab('d3')" id="tab-d3">Delta 3</div>
+  <div class="tab" onclick="showTab('d5')" id="tab-d5">Delta 5</div>
+  <div class="tab" onclick="showTab('d6')" id="tab-d6">Delta 6</div>
+  <div class="tab" onclick="showTab('d7')" id="tab-d7">Delta 7</div>
+  <div class="tab" onclick="showTab('d8')" id="tab-d8">Delta 8</div>
+  <div class="tab se-tab" onclick="showTab('se-d3')" id="tab-se-d3">SE Coletora D3</div>
+  <div class="tab se-tab" onclick="showTab('se-d6')" id="tab-se-d6">SE Coletora D6</div>
+  <div class="tab se-tab" onclick="showTab('se-d678')" id="tab-se-d678">SE Coletora D678</div>
+  <div class="tab elev-tab" onclick="showTab('se-elev')" id="tab-se-elev">SE Elevadora 500kV</div>
+  <div class="tab" onclick="showTab('unifilar-cir')" id="tab-unifilar-cir">🔌 Unifilar Circuito</div>
+</div>
+
+<div class="controls">
+  <span class="lbl-sm">Global:</span>
+  <button class="btn" onclick="setAll('on')">▶ Energizar tudo</button>
+  <button class="btn" onclick="setAll('off')">■ Desligar tudo</button>
+  <div class="sep"></div>
+  <span class="lbl-sm">Parque:</span>
+  <button class="btn" onclick="setParque('D3','on')">D3▶</button>
+  <button class="btn" onclick="setParque('D5','on')">D5▶</button>
+  <button class="btn" onclick="setParque('D6','on')">D6▶</button>
+  <button class="btn" onclick="setParque('D7','on')">D7▶</button>
+  <button class="btn" onclick="setParque('D8','on')">D8▶</button>
+  <div class="sep"></div>
+  <span class="lbl-sm">Simular:</span>
+  <button class="btn danger" onclick="simFaultWTG()">⚡ Falha WTG</button>
+  <button class="btn warn" onclick="simFaultTrafo()">🔥 Falha Trafo</button>
+  <button class="btn warn" onclick="simLinha()">🔌 Perda Linha</button>
+  <button class="btn" style="color:#79c0ff;border-color:#79c0ff44" onclick="simCurtailment()">↓ Curtailment</button>
+  <button class="btn" onclick="clearFaults()">✓ Limpar falhas</button>
+</div>
+
+<!-- MAIN PAGES -->
+<div class="page active" id="page-overview"><div id="overview-content"></div></div>
+<div class="page" id="page-d3">
+  <div id="d3-wind"></div>
+  <div id="d3-content"></div>
+</div>
+<div class="page" id="page-d5">
+  <div id="d5-wind"></div>
+  <div id="d5-content"></div>
+</div>
+<div class="page" id="page-d6">
+  <div id="d6-wind"></div>
+  <div id="d6-content"></div>
+</div>
+<div class="page" id="page-d7">
+  <div id="d7-wind"></div>
+  <div id="d7-content"></div>
+</div>
+<div class="page" id="page-d8">
+  <div id="d8-wind"></div>
+  <div id="d8-content"></div>
+</div>
+
+<!-- SE PAGES (rendered dynamically) -->
+<div class="page" id="page-se-d3"><div id="se-d3-content"></div></div>
+<div class="page" id="page-se-d6"><div id="se-d6-content"></div></div>
+<div class="page" id="page-se-d678"><div id="se-d678-content"></div></div>
+<div class="page" id="page-se-elev"><div id="se-elev-content"></div></div>
+
+<!-- UNIFILAR CIRCUITO PAGE -->
+<div class="page" id="page-unifilar-cir">
+  <div class="unifilar-wrap">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#79c0ff;">🔌 Diagrama Unifilar por Circuito — SE → CJ → SU → WTG</div>
+    <div class="unifilar-selector" id="unifilar-selector"></div>
+    <div class="unifilar-diagram-area">
+      <div id="unifilar-svg-container"></div>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--text3);display:flex;gap:16px;flex-wrap:wrap;">
+      <span>■ SE Coletora (34,5/138kV)</span>
+      <span>◇ Caixa de Junção (CJ)</span>
+      <span>▭ Subest. Unitária (SU) + Trafo 0,69/34,5kV</span>
+      <span>⊙ Aerogerador (WTG 2,3MW)</span>
+      <span style="color:var(--text3)">— Números sobre linhas = distância linear (m)</span>
+    </div>
+  </div>
+</div>
+
+
+<div class="legend">
+  <div class="leg-item"><div class="status-dot on"></div> Energizado</div>
+  <div class="leg-item"><div class="status-dot off"></div> Desligado</div>
+  <div class="leg-item"><div class="status-dot tripped"></div> Trip/Falha</div>
+  <div class="leg-item"><div class="status-dot curtailed"></div> Curtailed</div>
+  <div style="margin-left:auto;font-size:10px;color:var(--text3);">Clique nos WTGs para ligar/desligar · Clique no circuito para detalhes</div>
+</div>
+
+<div id="side-panel">
+  <button id="panel-close" onclick="closePanel()">✕</button>
+  <div class="panel-title" id="panel-title">Detalhes</div>
+  <div id="panel-content"></div>
+</div>
+<div id="tooltip"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA MODEL
+// ═══════════════════════════════════════════════════
+// topology: nós do circuito (SE → CJ opcional → SU+WTG)
+// dist = distância em metros desde o nó anterior (lido dos unifilares)
+const PARQUES = [
+  { id:'D3', name:'Delta 3', color:'#58a6ff', se:'se-d3', totalMW:220.8,
+    circuits:[
+      {id:'09F5',label:'D3-I C1',wtgs:['D3-I-07','D3-I-08','D3-I-09','D3-I-10','D3-I-11','D3-I-12'],mw:13.8,se:'D3-I',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'CJ',id:'CJ-D3I-01',label:'CJ D3-I-01',dist:3460},{type:'SU',wtg:'D3-I-07',dist:775,suType:'intermediario'},{type:'SU',wtg:'D3-I-08',dist:280,suType:'intermediario'},{type:'SU',wtg:'D3-I-09',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-I-10',dist:230,suType:'intermediario'},{type:'SU',wtg:'D3-I-11',dist:230,suType:'intermediario'},{type:'SU',wtg:'D3-I-12',dist:2032,suType:'fimdelinha'}]},
+      {id:'09F6',label:'D3-I C2',wtgs:['D3-I-01','D3-I-02','D3-I-03','D3-I-04','D3-I-05','D3-I-06'],mw:13.8,se:'D3-I',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'CJ',id:'CJ-D3I-02',label:'CJ D3-I-02',dist:2650},{type:'SU',wtg:'D3-I-01',dist:290,suType:'intermediario'},{type:'SU',wtg:'D3-I-02',dist:285,suType:'intermediario'},{type:'SU',wtg:'D3-I-03',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-I-04',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-I-05',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-I-06',dist:2110,suType:'fimdelinha'}]},
+      {id:'09J3',label:'D3-II C1',wtgs:['D3-II-01','D3-II-02','D3-II-03','D3-II-04','D3-II-05','D3-II-06'],mw:13.8,se:'D3-II',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-II-01',dist:3355,suType:'intermediario'},{type:'SU',wtg:'D3-II-02',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-03',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-04',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-05',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-06',dist:278,suType:'fimdelinha'}]},
+      {id:'09J4',label:'D3-II C2',wtgs:['D3-II-07','D3-II-08','D3-II-09','D3-II-10','D3-II-11','D3-II-12'],mw:13.8,se:'D3-II',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'CJ',id:'CJ-D3II-01',label:'CJ D3-II-01',dist:2730},{type:'SU',wtg:'D3-II-07',dist:2130,suType:'intermediario'},{type:'SU',wtg:'D3-II-08',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-09',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-10',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-11',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-II-12',dist:278,suType:'fimdelinha'}]},
+      {id:'09F3',label:'D3-III C1',wtgs:['D3-III-07','D3-III-08','D3-III-09','D3-III-10','D3-III-11','D3-III-12'],mw:13.8,se:'D3-III',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-III-12',dist:1230,suType:'intermediario'},{type:'SU',wtg:'D3-III-11',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-10',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-09',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-08',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-07',dist:278,suType:'fimdelinha'}]},
+      {id:'09F4',label:'D3-III C2',wtgs:['D3-III-01','D3-III-02','D3-III-03','D3-III-04','D3-III-05','D3-III-06'],mw:13.8,se:'D3-III',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-III-06',dist:2730,suType:'intermediario'},{type:'SU',wtg:'D3-III-05',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-04',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-03',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-02',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-III-01',dist:278,suType:'fimdelinha'}]},
+      {id:'09L1',label:'D3-IV C1',wtgs:['D3-IV-07','D3-IV-08','D3-IV-09','D3-IV-10','D3-IV-11','D3-IV-12'],mw:13.8,se:'D3-IV',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-IV-12',dist:1250,suType:'intermediario'},{type:'SU',wtg:'D3-IV-11',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-IV-10',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-IV-09',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-IV-08',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-IV-07',dist:278,suType:'fimdelinha'}]},
+      {id:'09L2',label:'D3-IV C2',wtgs:['D3-IV-01','D3-IV-02','D3-IV-03','D3-IV-04','D3-IV-05','D3-IV-06'],mw:13.8,se:'D3-IV',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-IV-06',dist:2760,suType:'intermediario'},{type:'SU',wtg:'D3-IV-05',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-IV-04',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-IV-03',dist:425,suType:'intermediario'},{type:'SU',wtg:'D3-IV-02',dist:365,suType:'intermediario'},{type:'SU',wtg:'D3-IV-01',dist:435,suType:'fimdelinha'}]},
+      {id:'09J2',label:'D3-V C1',wtgs:['D3-V-07','D3-V-08','D3-V-09','D3-V-10','D3-V-11'],mw:11.5,se:'D3-V',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-V-07',dist:1020,suType:'intermediario'},{type:'SU',wtg:'D3-V-08',dist:320,suType:'intermediario'},{type:'SU',wtg:'D3-V-09',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-V-10',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-V-11',dist:278,suType:'fimdelinha'}]},
+      {id:'09J6',label:'D3-V C2',wtgs:['D3-V-01','D3-V-02','D3-V-03','D3-V-04','D3-V-05','D3-V-06','D3-V-13'],mw:16.1,se:'D3-V',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'CJ',id:'CJ-D3V-01',label:'CJ D3-V-01',dist:340},{type:'SU',wtg:'D3-V-04',dist:135,suType:'intermediario'},{type:'SU',wtg:'D3-V-05',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-V-06',dist:285,suType:'intermediario'},{type:'SU',wtg:'D3-V-13',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-V-03',dist:185,suType:'intermediario'},{type:'SU',wtg:'D3-V-02',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-V-01',dist:278,suType:'fimdelinha'}]},
+      {id:'09J1',label:'D3-VI C1',wtgs:['D3-VI-08','D3-VI-09','D3-VI-10','D3-VI-11','D3-VI-12'],mw:11.5,se:'D3-VI',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-VI-08',dist:2110,suType:'intermediario'},{type:'SU',wtg:'D3-VI-09',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VI-10',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VI-11',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VI-12',dist:278,suType:'fimdelinha'}]},
+      {id:'09J5',label:'D3-VI C2',wtgs:['D3-VI-01','D3-VI-02','D3-VI-03','D3-VI-04','D3-VI-05','D3-VI-06','D3-VI-07'],mw:16.1,se:'D3-VI',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-VI-01',dist:1485,suType:'intermediario'},{type:'SU',wtg:'D3-VI-02',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VI-03',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VI-04',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VI-05',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VI-06',dist:365,suType:'intermediario'},{type:'SU',wtg:'D3-VI-07',dist:435,suType:'fimdelinha'}]},
+      {id:'09L3',label:'D3-VII C1',wtgs:['D3-VII-07','D3-VII-08','D3-VII-09','D3-VII-10','D3-VII-11','D3-VII-12'],mw:13.8,se:'D3-VII',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'CJ',id:'CJ-D3VII-01',label:'CJ D3-VII-01',dist:2730},{type:'SU',wtg:'D3-VII-07',dist:2020,suType:'intermediario'},{type:'SU',wtg:'D3-VII-08',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-09',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-10',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-11',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-12',dist:278,suType:'fimdelinha'}]},
+      {id:'09L4',label:'D3-VII C2',wtgs:['D3-VII-01','D3-VII-02','D3-VII-03','D3-VII-04','D3-VII-05','D3-VII-06'],mw:13.8,se:'D3-VII',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-VII-01',dist:3240,suType:'intermediario'},{type:'SU',wtg:'D3-VII-02',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-03',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-04',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-05',dist:278,suType:'intermediario'},{type:'SU',wtg:'D3-VII-06',dist:278,suType:'fimdelinha'}]},
+      {id:'09F1',label:'D3-VIII C1',wtgs:['D3-VIII-07','D3-VIII-08','D3-VIII-09','D3-VIII-10','D3-VIII-11','D3-VIII-12'],mw:13.8,se:'D3-VIII',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-VIII-07',dist:3520,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-08',dist:232,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-09',dist:232,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-10',dist:232,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-11',dist:275,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-12',dist:232,suType:'fimdelinha'}]},
+      {id:'09F2',label:'D3-VIII C2',wtgs:['D3-VIII-01','D3-VIII-02','D3-VIII-03','D3-VIII-04','D3-VIII-05','D3-VIII-06'],mw:13.8,se:'D3-VIII',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'SU',wtg:'D3-VIII-01',dist:2290,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-02',dist:232,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-03',dist:232,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-04',dist:232,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-05',dist:232,suType:'intermediario'},{type:'SU',wtg:'D3-VIII-06',dist:232,suType:'fimdelinha'}]},
+    ]
+  },
+  { id:'D5', name:'Delta 5', color:'#39d353', se:'se-d3', totalMW:54.0,
+    circuits:[
+      {id:'09L5',label:'D5-I C1',wtgs:['D5-I-06','D5-I-07','D5-I-08','D5-I-09','D5-I-10'],mw:13.5,se:'D5-I',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'CJ',id:'CX-D5I',label:'CX D5-I',dist:3500},{type:'SU',wtg:'D5-I-06',dist:1883,suType:'intermediario'},{type:'SU',wtg:'D5-I-07',dist:287,suType:'intermediario'},{type:'SU',wtg:'D5-I-08',dist:270,suType:'intermediario'},{type:'SU',wtg:'D5-I-09',dist:267,suType:'intermediario'},{type:'SU',wtg:'D5-I-10',dist:271,suType:'fimdelinha'}]},
+      {id:'09L6',label:'D5-I C2',wtgs:['D5-I-01','D5-I-02','D5-I-03','D5-I-04','D5-I-05'],mw:13.5,se:'D5-I',
+       topology:[{type:'SE',id:'SE-D3',label:'SE Coletora D3'},{type:'CJ',id:'CX-D5I',label:'CX D5-I',dist:3500},{type:'SU',wtg:'D5-I-01',dist:359,suType:'intermediario'},{type:'SU',wtg:'D5-I-02',dist:300,suType:'intermediario'},{type:'SU',wtg:'D5-I-03',dist:271,suType:'intermediario'},{type:'SU',wtg:'D5-I-04',dist:271,suType:'intermediario'},{type:'SU',wtg:'D5-I-05',dist:271,suType:'fimdelinha'}]},
+      {id:'09N5',label:'D5-II C1',wtgs:['D5-II-06','D5-II-07','D5-II-08','D5-II-09','D5-II-10'],mw:13.5,se:'D5-II',seConn:'se-d6',
+       topology:[{type:'SE',id:'SE-D6',label:'SE Coletora D6'},{type:'SU',wtg:'D5-II-06',dist:1170,suType:'intermediario'},{type:'SU',wtg:'D5-II-07',dist:835,suType:'intermediario'},{type:'SU',wtg:'D5-II-08',dist:400,suType:'intermediario'},{type:'SU',wtg:'D5-II-09',dist:363,suType:'intermediario'},{type:'SU',wtg:'D5-II-10',dist:359,suType:'fimdelinha'}]},
+      {id:'09N6',label:'D5-II C2',wtgs:['D5-II-01','D5-II-02','D5-II-03','D5-II-04','D5-II-05'],mw:13.5,se:'D5-II',seConn:'se-d6',
+       topology:[{type:'SE',id:'SE-D6',label:'SE Coletora D6'},{type:'SU',wtg:'D5-II-01',dist:416,suType:'intermediario'},{type:'SU',wtg:'D5-II-02',dist:387,suType:'intermediario'},{type:'SU',wtg:'D5-II-03',dist:557,suType:'intermediario'},{type:'SU',wtg:'D5-II-04',dist:363,suType:'intermediario'},{type:'SU',wtg:'D5-II-05',dist:363,suType:'fimdelinha'}]},
+    ]
+  },
+  { id:'D6', name:'Delta 6', color:'#a371f7', se:'se-d6', totalMW:54.0,
+    circuits:[
+      {id:'09N3',label:'D6-I C1',wtgs:['D6-I-07','D6-I-08','D6-I-09','D6-I-10','D6-I-11'],mw:13.5,se:'D6-I',
+       topology:[{type:'SE',id:'SE-D6',label:'SE Coletora D6'},{type:'SU',wtg:'D6-I-11',dist:2290,suType:'intermediario'},{type:'SU',wtg:'D6-I-10',dist:233,suType:'intermediario'},{type:'SU',wtg:'D6-I-09',dist:233,suType:'intermediario'},{type:'SU',wtg:'D6-I-08',dist:233,suType:'intermediario'},{type:'SU',wtg:'D6-I-07',dist:233,suType:'fimdelinha'}]},
+      {id:'09N4',label:'D6-I C2',wtgs:['D6-I-01','D6-I-02','D6-I-03','D6-I-04','D6-I-05','D6-I-06'],mw:16.2,se:'D6-I',
+       topology:[{type:'SE',id:'SE-D6',label:'SE Coletora D6'},{type:'SU',wtg:'D6-I-05',dist:3575,suType:'intermediario'},{type:'SU',wtg:'D6-I-04',dist:233,suType:'intermediario'},{type:'SU',wtg:'D6-I-03',dist:237,suType:'intermediario'},{type:'SU',wtg:'D6-I-02',dist:332,suType:'intermediario'},{type:'SU',wtg:'D6-I-01',dist:270,suType:'intermediario'},{type:'SU',wtg:'D6-I-06',dist:233,suType:'fimdelinha'}]},
+      {id:'09N1',label:'D6-II C1',wtgs:['D6-II-05','D6-II-06','D6-II-07','D6-II-08','D6-II-09'],mw:13.5,se:'D6-II',
+       topology:[{type:'SE',id:'SE-D6',label:'SE Coletora D6'},{type:'CJ',id:'CX-D6II',label:'CX D6-II',dist:3400},{type:'SU',wtg:'D6-II-09',dist:2350,suType:'intermediario'},{type:'SU',wtg:'D6-II-08',dist:269,suType:'intermediario'},{type:'SU',wtg:'D6-II-07',dist:270,suType:'intermediario'},{type:'SU',wtg:'D6-II-06',dist:269,suType:'intermediario'},{type:'SU',wtg:'D6-II-05',dist:269,suType:'fimdelinha'}]},
+      {id:'09N2',label:'D6-II C2',wtgs:['D6-II-01','D6-II-02','D6-II-03','D6-II-04'],mw:10.8,se:'D6-II',
+       topology:[{type:'SE',id:'SE-D6',label:'SE Coletora D6'},{type:'CJ',id:'CX-D6II',label:'CX D6-II',dist:3400},{type:'SU',wtg:'D6-II-04',dist:2350,suType:'intermediario'},{type:'SU',wtg:'D6-II-03',dist:269,suType:'intermediario'},{type:'SU',wtg:'D6-II-02',dist:269,suType:'intermediario'},{type:'SU',wtg:'D6-II-01',dist:270,suType:'fimdelinha'}]},
+    ]
+  },
+  { id:'D7', name:'Delta 7', color:'#f0883e', se:'se-d678', totalMW:62.1,
+    circuits:[
+      {id:'09S1',label:'D7-I C1',wtgs:['D7-I-01','D7-I-02','D7-I-03','D7-I-04','D7-I-05'],mw:13.5,se:'D7-I',
+       topology:[{type:'SE',id:'SE-D678',label:'SE Coletora D678'},{type:'SU',wtg:'D7-I-01',dist:3345,suType:'intermediario'},{type:'SU',wtg:'D7-I-02',dist:215,suType:'intermediario'},{type:'SU',wtg:'D7-I-03',dist:322,suType:'intermediario'},{type:'SU',wtg:'D7-I-04',dist:268,suType:'intermediario'},{type:'SU',wtg:'D7-I-05',dist:268,suType:'fimdelinha'}]},
+      {id:'09S2',label:'D7-I C2',wtgs:['D7-I-06','D7-I-07','D7-I-08','D7-I-09','D7-I-10'],mw:13.5,se:'D7-I',
+       topology:[{type:'SE',id:'SE-D678',label:'SE Coletora D678'},{type:'SU',wtg:'D7-I-06',dist:2375,suType:'intermediario'},{type:'SU',wtg:'D7-I-07',dist:215,suType:'intermediario'},{type:'SU',wtg:'D7-I-08',dist:215,suType:'intermediario'},{type:'SU',wtg:'D7-I-09',dist:211,suType:'intermediario'},{type:'SU',wtg:'D7-I-10',dist:211,suType:'fimdelinha'}]},
+      {id:'09S3',label:'D7-II C1',wtgs:['D7-II-07','D7-II-08','D7-II-09','D7-II-10','D7-II-11','D7-II-12','D7-II-13'],mw:18.9,se:'D7-II',
+       topology:[{type:'SE',id:'SE-D678',label:'SE Coletora D678'},{type:'SU',wtg:'D7-II-07',dist:1365,suType:'intermediario'},{type:'SU',wtg:'D7-II-08',dist:218,suType:'intermediario'},{type:'SU',wtg:'D7-II-09',dist:228,suType:'intermediario'},{type:'SU',wtg:'D7-II-10',dist:262,suType:'intermediario'},{type:'SU',wtg:'D7-II-11',dist:219,suType:'intermediario'},{type:'SU',wtg:'D7-II-12',dist:225,suType:'intermediario'},{type:'SU',wtg:'D7-II-13',dist:225,suType:'fimdelinha'}]},
+      {id:'09S4',label:'D7-II C2',wtgs:['D7-II-01','D7-II-02','D7-II-03','D7-II-04','D7-II-05','D7-II-06'],mw:16.2,se:'D7-II',
+       topology:[{type:'SE',id:'SE-D678',label:'SE Coletora D678'},{type:'SU',wtg:'D7-II-01',dist:965,suType:'intermediario'},{type:'SU',wtg:'D7-II-02',dist:219,suType:'intermediario'},{type:'SU',wtg:'D7-II-03',dist:217,suType:'intermediario'},{type:'SU',wtg:'D7-II-04',dist:219,suType:'intermediario'},{type:'SU',wtg:'D7-II-05',dist:219,suType:'intermediario'},{type:'SU',wtg:'D7-II-06',dist:219,suType:'fimdelinha'}]},
+    ]
+  },
+  { id:'D8', name:'Delta 8', color:'#ff7b72', se:'se-d678', totalMW:35.1,
+    circuits:[
+      {id:'09S5',label:'D8-I C1',wtgs:['D8-I-07','D8-I-08','D8-I-09','D8-I-10','D8-I-11','D8-I-12'],mw:16.2,se:'D8-I',
+       topology:[{type:'SE',id:'SE-D678',label:'SE Coletora D678'},{type:'SU',wtg:'D8-I-07',dist:1995,suType:'intermediario'},{type:'SU',wtg:'D8-I-08',dist:224,suType:'intermediario'},{type:'SU',wtg:'D8-I-09',dist:221,suType:'intermediario'},{type:'SU',wtg:'D8-I-10',dist:237,suType:'intermediario'},{type:'SU',wtg:'D8-I-11',dist:259,suType:'intermediario'},{type:'SU',wtg:'D8-I-12',dist:259,suType:'fimdelinha'}]},
+      {id:'09S6',label:'D8-I C2',wtgs:['D8-I-01','D8-I-02','D8-I-03','D8-I-04','D8-I-05','D8-I-06','D8-I-13'],mw:18.9,se:'D8-I',
+       topology:[{type:'SE',id:'SE-D678',label:'SE Coletora D678'},{type:'SU',wtg:'D8-I-01',dist:2400,suType:'intermediario'},{type:'SU',wtg:'D8-I-02',dist:251,suType:'intermediario'},{type:'SU',wtg:'D8-I-03',dist:222,suType:'intermediario'},{type:'SU',wtg:'D8-I-04',dist:222,suType:'intermediario'},{type:'SU',wtg:'D8-I-05',dist:222,suType:'intermediario'},{type:'SU',wtg:'D8-I-06',dist:222,suType:'intermediario'},{type:'SU',wtg:'D8-I-13',dist:222,suType:'fimdelinha'}]},
+    ]
+  }
+];
+
+// SE Transformers
+const SE_DATA = {
+  'se-d3': {
+    title:'SE Coletora · Delta 3', cls:'kv138', titleColor:'#79c0ff',
+    tensao:'34,5 / 138 kV', parques:'Delta 3 + Delta 5-I', pids:['D3'],
+    pidsCir:['09F5','09F6','09J3','09J4','09F3','09F4','09L1','09L2','09J2','09J6','09J1','09J5','09L3','09L4','09F1','09F2','09L5','09L6'],
+    trafos:[
+      {id:'tr-d3-1',label:'Trafo 1',spec:'95/70,5 MVA',tensao:'34,5/138kV',rated:95},
+      {id:'tr-d3-2',label:'Trafo 2',spec:'95/70,5 MVA',tensao:'34,5/138kV',rated:95},
+      {id:'tr-d3-3',label:'Trafo 3',spec:'95/70,5 MVA',tensao:'34,5/138kV',rated:95},
+    ],
+    brks:['brk-d3-1','brk-d3-2','brk-d3-3']
+  },
+  'se-d6': {
+    title:'SE Coletora · Delta 6', cls:'kv138', titleColor:'#79c0ff',
+    tensao:'34,5 / 138 kV', parques:'Delta 6 + Delta 5-II', pids:['D6'],
+    pidsCir:['09N3','09N4','09N1','09N2','09N5','09N6'],
+    trafos:[
+      {id:'tr-d6-1',label:'Trafo 1',spec:'95/70,5 MVA',tensao:'34,5/138kV',rated:95},
+      {id:'tr-d6-2',label:'Trafo 2',spec:'80/90/110 MVA',tensao:'34,5/138kV',rated:110},
+    ],
+    brks:['brk-d6-1','brk-d6-2']
+  },
+  'se-d678': {
+    title:'SE Coletora · Delta 6/7/8', cls:'kv138', titleColor:'#79c0ff',
+    tensao:'34,5 / 138 kV', parques:'Delta 7 + Delta 8', pids:['D7','D8'],
+    pidsCir:['09S1','09S2','09S3','09S4','09S5','09S6'],
+    trafos:[
+      {id:'tr-d678-1',label:'Trafo 1',spec:'95 MVA',tensao:'34,5/138kV',rated:95},
+      {id:'tr-d678-2',label:'Trafo 2',spec:'80/90/110 MVA',tensao:'34,5/138kV',rated:110},
+    ],
+    brks:['brk-d678-1','brk-d678-2']
+  },
+  'se-elev': {
+    title:'SE Elevadora · 500 kV', cls:'kv500', titleColor:'#f78166',
+    tensao:'138 / 500 kV', parques:'Todos os parques', pids:['D3','D5','D6','D7','D8'],
+    trafos:[
+      {id:'tr-elev-1',label:'Bay 1',spec:'80/100/120 MVA',tensao:'138/500kV',rated:120},
+      {id:'tr-elev-2',label:'Bay 2',spec:'80/100/120 MVA',tensao:'138/500kV',rated:120},
+      {id:'tr-elev-3',label:'Bay 3',spec:'80/100/120 MVA',tensao:'138/500kV',rated:120},
+      {id:'tr-elev-4',label:'Bay 4',spec:'80/100/120 MVA',tensao:'138/500kV',rated:120},
+      {id:'tr-elev-5',label:'Bay 5',spec:'80/100/120 MVA',tensao:'138/500kV',rated:120},
+      {id:'tr-elev-6',label:'Bay 6',spec:'80/100/120 MVA',tensao:'138/500kV',rated:120},
+      {id:'tr-elev-r',label:'Reserva',spec:'80/100/120 MVA',tensao:'138/500kV',rated:120,reserva:true},
+    ],
+    brks:[]
+  }
+};
+
+// Wind state per parque (m/s)
+const wind = {D3:9.5, D5:9.0, D6:8.5, D7:10.0, D8:10.5};
+
+// Trafo state
+const trafoState = {};
+Object.values(SE_DATA).forEach(se => se.trafos.forEach(t => {
+  trafoState[t.id] = {status:'on', brk:true};
+}));
+// Breaker states for SEs
+const brkState = {};
+
+// Circuit state
+const state = {};
+PARQUES.forEach(p => p.circuits.forEach(c => {
+  state[c.id] = {status:'off', breaker:true, wtgs:Array(c.wtgs.length).fill('off'), curtailed:false, curtailPct:0};
+}));
+
+// Event log
+let eventLog = [];
+let logFilter = 'ALL';
+let alarmCount = 0;
+let autoSimInterval = null;
+
+// ═══════════════════════════════════════════════════
+// WIND → POWER CURVE (Enercon E-92 / 2.3MW)
+// Cut-in: 2 m/s, Rated: ~13 m/s, Cut-out: 25 m/s
+// ═══════════════════════════════════════════════════
+function windToPower(v_ms) {
+  if (v_ms < 2 || v_ms > 25) return 0;
+  if (v_ms >= 13) return 1.0; // rated
+  if (v_ms < 5) return 0.05 * (v_ms - 2) / 3;
+  // cubic interpolation region 5-13 m/s
+  const t = (v_ms - 5) / 8;
+  return Math.min(1, 0.05 + 0.95 * (t * t * (3 - 2*t)));
+}
+
+function applyWind(pid) {
+  const p = PARQUES.find(x=>x.id===pid);
+  const pct = windToPower(wind[pid]);
+  p.circuits.forEach(c => {
+    const s = state[c.id];
+    if (s.status === 'off' || !s.breaker) return;
+    const totalWtgs = c.wtgs.length;
+    const activeCount = Math.round(pct * totalWtgs);
+    s.wtgs = s.wtgs.map((w,i) => {
+      if (w === 'fault' || w === 'tripped') return w;
+      return i < activeCount ? 'on' : 'off';
+    });
+    updateCircuitStatus(c.id);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// TAB NAV
+// ═══════════════════════════════════════════════════
+function showTab(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  renderPage(id);
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER DISPATCH
+// ═══════════════════════════════════════════════════
+function renderPage(id) {
+  if (id==='overview') renderOverview();
+  else if (['d3','d5','d6','d7','d8'].includes(id)) renderParquePage(id.toUpperCase());
+  else if (id.startsWith('se-')) renderSEPage(id);
+  else if (id==='log') renderLog();
+  else if (id==='unifilar-cir') renderUnifilarPage();
+}
+
+// ═══════════════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════════════
+function renderOverview() {
+  let html = '';
+  PARQUES.forEach(p => {
+    const onWtgs = p.circuits.reduce((s,c)=>s+state[c.id].wtgs.filter(w=>w==='on').length,0);
+    const totalWtgs = p.circuits.reduce((s,c)=>s+c.wtgs.length,0);
+    const onMW = calcParqueMW(p.id);
+    const pct = windToPower(wind[p.id]);
+    html += `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+        <div style="font-size:15px;font-weight:700;color:${p.color}">${p.name}
+          <span style="font-size:11px;color:var(--text2);font-weight:400;margin-left:8px;">${p.totalMW} MW inst.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="font-size:11px;color:#39d353;">💨 ${wind[p.id].toFixed(1)} m/s · ${Math.round(pct*100)}%</div>
+          <div style="font-size:12px;color:var(--text2);">${onMW.toFixed(1)} MW · ${onWtgs}/${totalWtgs} WTGs</div>
+        </div>
+      </div>
+      <div class="circuits-grid">
+        ${p.circuits.map(c=>renderCircuitCard(c,p)).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('overview-content').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════
+// PARQUE PAGE
+// ═══════════════════════════════════════════════════
+function renderParquePage(pid) {
+  const p = PARQUES.find(x=>x.id===pid);
+  const lid = pid.toLowerCase();
+  const onWtgs = p.circuits.reduce((s,c)=>s+state[c.id].wtgs.filter(w=>w==='on').length,0);
+  const totalWtgs = p.circuits.reduce((s,c)=>s+c.wtgs.length,0);
+  const onMW = calcParqueMW(pid);
+  const disp = totalWtgs>0?Math.round(onWtgs/totalWtgs*100):0;
+  const pct = windToPower(wind[pid]);
+
+  // Wind panel
+  document.getElementById(`${lid}-wind`).innerHTML = `
+    <div class="wind-panel">
+      <div style="font-size:12px;font-weight:600;color:#39d353;white-space:nowrap;">💨 Vento – ${p.name}</div>
+      <div class="wind-parque" style="flex:1;max-width:320px;">
+        <label>
+          <span>Velocidade do vento</span>
+          <span><span class="wind-speed-val">${wind[pid].toFixed(1)}</span> m/s</span>
+        </label>
+        <input type="range" min="0" max="25" step="0.5" value="${wind[pid]}"
+          oninput="setWind('${pid}',+this.value)">
+        <div class="curve-label"><span>0 m/s</span><span>cut-in 2</span><span>rated 13</span><span>cut-out 25</span></div>
+        <div class="curve-bar"><div class="curve-fill" id="curve-${pid}" style="width:${wind[pid]/25*100}%"></div></div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div><div style="font-size:18px;font-weight:700;color:#39d353;">${Math.round(pct*100)}%</div><div style="font-size:10px;color:var(--text3);">Fator de capacidade</div></div>
+        <div><div style="font-size:18px;font-weight:700;color:${p.color};">${onMW.toFixed(1)}</div><div style="font-size:10px;color:var(--text3);">MW online</div></div>
+        <div><div style="font-size:18px;font-weight:700;">${onWtgs}/${totalWtgs}</div><div style="font-size:10px;color:var(--text3);">WTGs online</div></div>
+        <div><div style="font-size:18px;font-weight:700;color:var(--blue);">${disp}%</div><div style="font-size:10px;color:var(--text3);">Disponibilidade</div></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn" style="border-color:${p.color};color:${p.color}" onclick="setParque('${pid}','on')">▶ Energizar</button>
+        <button class="btn" onclick="setParque('${pid}','off')">■ Desligar</button>
+        <button class="btn" style="color:#79c0ff;border-color:#79c0ff44" onclick="simCurtailParque('${pid}')">↓ Curtailment</button>
+      </div>
+    </div>`;
+
+  // Circuit groups by SE
+  const seGroups = {};
+  p.circuits.forEach(c=>{ if(!seGroups[c.se]) seGroups[c.se]=[]; seGroups[c.se].push(c); });
+  let seHtml = '';
+  Object.entries(seGroups).forEach(([se,circs])=>{
+    seHtml += `<div class="se-section">
+      <div class="se-section-title">Subestação ${se}</div>
+      <div class="circuits-grid">${circs.map(c=>renderCircuitCard(c,p)).join('')}</div>
+    </div>`;
+  });
+  document.getElementById(`${lid}-content`).innerHTML = seHtml;
+}
+
+// ═══════════════════════════════════════════════════
+// SE PAGE (fully dynamic, trafo cards interactive)
+// ═══════════════════════════════════════════════════
+function renderSEPage(id) {
+  const se = SE_DATA[id];
+  // Use pidsCir (lista explícita de IDs de circuito) quando disponível, senão pids (parques)
+  const allCirIds = se.pidsCir || null;
+  const mw = allCirIds
+    ? allCirIds.reduce((s,cid)=>s+calcCircuitMW(cid),0)
+    : calcSEMW(se.pids);
+  const totalRated = se.trafos.filter(t=>!t.reserva&&trafoState[t.id].status==='on').reduce((s,t)=>s+t.rated,0);
+  const loadPct = totalRated>0?Math.min(100,Math.round(mw/totalRated*100)):0;
+  const loadColor = loadPct>90?'var(--red)':loadPct>70?'var(--amber)':'var(--green)';
+
+  const trafoHtml = se.trafos.map(t=>{
+    const ts = trafoState[t.id];
+    const cls = ts.status==='fault'?'fault':ts.status==='off'?'off':'on';
+    const brkCls = ts.brk?'closed':'open';
+    const tMW = ts.status==='on'&&!t.reserva ? (mw/se.trafos.filter(x=>!x.reserva&&trafoState[x.id].status==='on').length||0) : 0;
+    return `
+    <div class="trafo-card ${cls}" onclick="openTrafoPanel('${t.id}','${id}')">
+      <div class="trafo-brk"><div class="brk ${brkCls}" onclick="toggleTrafoBreaker(event,'${t.id}')" title="Disjuntor ${t.label}"></div></div>
+      <div class="trafo-label">${t.label}${t.reserva?' · RESERVA':''}</div>
+      <div class="trafo-spec">${t.spec}</div>
+      <div class="trafo-spec" style="font-size:10px;color:var(--text3)">${t.tensao}</div>
+      <div class="trafo-mw">${ts.status==='on'&&!t.reserva?tMW.toFixed(1)+' MW':'—'}</div>
+      <div class="trafo-status" style="color:${cls==='on'?'var(--green)':cls==='fault'?'var(--red)':'var(--amber)'}">${cls==='on'?'● Energizado':cls==='fault'?'⚠ Falha':'○ Desligado'}</div>
+    </div>`;
+  }).join('');
+
+  // Circuitos: usa pidsCir se definido, senão todos os circuitos dos pids
+  const circs = allCirIds
+    ? allCirIds.map(cid => PARQUES.flatMap(p=>p.circuits).find(c=>c.id===cid)).filter(Boolean)
+    : PARQUES.flatMap(p=>se.pids.includes(p.id)?p.circuits:[]);
+
+  const circHtml = circs.map(c=>`
+    <span onclick="openCircuitPanel('${c.id}')" style="padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;font-size:11px;font-family:monospace;color:var(--blue);cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+      <span class="status-dot ${state[c.id].status==='on'?'on':state[c.id].status==='fault'?'fault':state[c.id].status==='tripped'?'tripped':'off'}" style="width:5px;height:5px;"></span>${c.id}
+    </span>`).join('');
+
+  document.getElementById(`${id}-content`).innerHTML = `
+    <div class="se-page-card ${se.cls}">
+      <div class="se-page-title" style="color:${se.titleColor}">${se.title}</div>
+      <div class="se-row"><span class="k">Tensão</span><span class="v">${se.tensao}</span></div>
+      <div class="se-row"><span class="k">Parques atendidos</span><span class="v">${se.parques}</span></div>
+      <div class="se-row"><span class="k">Geração atual</span><span class="v" style="color:${se.cls==='kv500'?'#f78166':'var(--green)'}">${mw.toFixed(1)} MW</span></div>
+      <div class="se-row"><span class="k">Carregamento trafos</span><span class="v" style="color:${loadColor}">${loadPct}% (${mw.toFixed(0)} / ${totalRated} MVA)</span></div>
+      <div class="se-row"><span class="k">Status</span><span class="v" style="color:var(--green)">Energizada</span></div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text3);margin-bottom:6px;">Transformadores — clique para detalhes / simular falha:</div>
+      <div class="trafo-grid">${trafoHtml}</div>
+      ${se.brks.length>0?`<div style="margin-top:12px;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:8px;">Disjuntores SE: ${se.brks.map(b=>`<div class="brk ${brkState[b]===false?'open':'closed'}" id="${b}" onclick="toggleBreaker(event,'${b}')" title="${b}"></div>`).join('')}</div>`:''}
+      <div style="margin-top:14px;font-size:11px;color:var(--text3);">Circuitos de entrada:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${circHtml}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// CIRCUIT CARD
+// ═══════════════════════════════════════════════════
+function renderCircuitCard(c,p) {
+  const s = state[c.id];
+  const onCount = s.wtgs.filter(w=>w==='on').length;
+  const curtCount = s.wtgs.filter(w=>w==='curtailed').length;
+  const onMW = (c.mw*onCount/c.wtgs.length).toFixed(1);
+  const cls = s.curtailed?'curtailed':s.status==='on'?'energized':s.status==='tripped'?'tripped':s.status==='fault'?'fault':'';
+  const dotCls = s.curtailed?'curtailed':s.status==='on'?'on':s.status==='tripped'?'tripped':s.status==='fault'?'fault':'off';
+  const brkCls = s.breaker?'closed':'open';
+  const wtgHtml = s.wtgs.map((w,i)=>{
+    const wCls = w==='on'?'on':w==='curtailed'?'curtailed':w==='tripped'?'tripped':w==='fault'?'fault':'';
+    const num = c.wtgs[i].split('-').pop();
+    return `<div class="w ${wCls}" title="${c.wtgs[i]}" onclick="toggleWtg(event,'${c.id}',${i})">${num}</div>`;
+  }).join('');
+  return `
+    <div class="cir ${cls}" id="cir-${c.id}" onclick="openCircuitPanel('${c.id}')">
+      <div class="cir-top">
+        <span class="cir-id">${c.id}</span>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div class="brk ${brkCls}" id="brk-${c.id}" onclick="toggleCircuitBreaker(event,'${c.id}')" title="Disjuntor"></div>
+          <div class="status-dot ${dotCls}"></div>
+        </div>
+      </div>
+      <div class="cir-body">
+        <div class="cir-label">${c.label} · ${c.se}</div>
+        <div class="cir-mw">${onMW} / ${c.mw.toFixed(1)} MW · ${onCount}/${c.wtgs.length} WTGs</div>
+        <div class="cir-curtail">↓ Curtailment: ${curtCount} WTGs</div>
+        <div class="wtg-grid">${wtgHtml}</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════════
+function toggleWtg(e,circId,idx) {
+  e.stopPropagation();
+  const s = state[circId]; const cur = s.wtgs[idx];
+  s.wtgs[idx] = cur==='on'?'off':'on';
+  updateCircuitStatus(circId); render();
+}
+
+function toggleCircuitBreaker(e,circId) {
+  e.stopPropagation();
+  const s = state[circId]; s.breaker=!s.breaker;
+  if(!s.breaker){s.wtgs=s.wtgs.map(()=>'off');s.status='off';}
+  updateCircuitStatus(circId); render();
+}
+
+function toggleBreaker(e,brkId) {
+  e.stopPropagation();
+  brkState[brkId] = brkState[brkId]===false?true:false;
+  render();
+}
+
+function toggleTrafoBreaker(e,tid) {
+  e.stopPropagation();
+  const ts = trafoState[tid];
+  ts.brk = !ts.brk;
+  ts.status = ts.brk?'on':'off';
+  render();
+}
+
+function updateCircuitStatus(circId) {
+  const s = state[circId];
+  const onCount = s.wtgs.filter(w=>w==='on').length;
+  const faultCount = s.wtgs.filter(w=>w==='fault').length;
+  const curtCount = s.wtgs.filter(w=>w==='curtailed').length;
+  s.curtailed = curtCount>0 && faultCount===0;
+  if(faultCount>0) s.status='fault';
+  else if(!s.breaker||onCount===0) s.status='off';
+  else s.status='on';
+}
+
+function setAll(st) {
+  PARQUES.forEach(p=>p.circuits.forEach(c=>{
+    state[c.id].breaker=st==='on'; state[c.id].status=st==='on'?'on':'off';
+    state[c.id].wtgs=Array(c.wtgs.length).fill(st==='on'?'on':'off');
+    state[c.id].curtailed=false;
+  }));
+  render();
+}
+
+function setParque(pid,st) {
+  const p=PARQUES.find(x=>x.id===pid); if(!p) return;
+  p.circuits.forEach(c=>{
+    state[c.id].breaker=st==='on'; state[c.id].status=st==='on'?'on':'off';
+    state[c.id].wtgs=Array(c.wtgs.length).fill(st==='on'?'on':'off');
+    state[c.id].curtailed=false;
+  });
+  render();
+}
+
+function setWind(pid,v) {
+  wind[pid]=v;
+  applyWind(pid);
+  addLog('VENTO',pid,'—',`Vento ajustado para ${v.toFixed(1)} m/s (${Math.round(windToPower(v)*100)}% potência)`,0);
+  render();
+}
+
+// ═══════════════════════════════════════════════════
+// SIMULATORS
+// ═══════════════════════════════════════════════════
+function simFaultWTG() {
+  const all=PARQUES.flatMap(p=>p.circuits.map(c=>({cid:c.id,pid:p.id})));
+  const on=all.filter(x=>state[x.cid].status==='on');
+  if(!on.length){alert('Energize o sistema primeiro.');return;}
+  const {cid,pid}=on[Math.floor(Math.random()*on.length)];
+  const s=state[cid]; const idx=Math.floor(Math.random()*s.wtgs.length);
+  const prevMW=calcCircuitMW(cid);
+  s.wtgs[idx]='fault'; s.status='fault';
+  const c=PARQUES.flatMap(p=>p.circuits).find(x=>x.id===cid);
+  const delta=prevMW-calcCircuitMW(cid);
+  addLog('FALHA',pid,cid,`Falha em ${c.wtgs[idx]} – proteção atuada`,-delta);
+  render(); showToast(`⚠ Falha detectada: ${c.wtgs[idx]} (${cid})`,'red');
+}
+
+function simFaultTrafo() {
+  const allTrafos=Object.values(SE_DATA).flatMap(se=>se.trafos.map(t=>({...t,seId:Object.keys(SE_DATA).find(k=>SE_DATA[k].trafos.includes(t))})));
+  const onTrafos=allTrafos.filter(t=>trafoState[t.id].status==='on'&&!t.reserva);
+  if(!onTrafos.length){alert('Nenhum trafo energizado.');return;}
+  const t=onTrafos[Math.floor(Math.random()*onTrafos.length)];
+  const seKey=Object.keys(SE_DATA).find(k=>SE_DATA[k].trafos.some(x=>x.id===t.id));
+  const prevMW=calcSEMW(SE_DATA[seKey].pids);
+  trafoState[t.id].status='fault'; trafoState[t.id].brk=false;
+  addLog('TRAFO',seKey,t.id,`Falha em ${t.label} (${t.spec}) – sobrecarga/isolação`,-prevMW*0.3);
+  render(); showToast(`🔥 Falha trafo: ${t.label} – ${seKey.toUpperCase()}`,'red');
+}
+
+function simLinha() {
+  const all=PARQUES.flatMap(p=>p.circuits.map(c=>({cid:c.id,pid:p.id})));
+  const on=all.filter(x=>state[x.cid].status==='on');
+  if(!on.length){alert('Nenhum circuito energizado.');return;}
+  // Trip an entire SE group (simulates line loss)
+  const {pid}=on[Math.floor(Math.random()*on.length)];
+  const p=PARQUES.find(x=>x.id===pid);
+  const prevMW=calcParqueMW(pid);
+  p.circuits.forEach(c=>{
+    state[c.id].breaker=false;
+    state[c.id].wtgs=state[c.id].wtgs.map(()=>'tripped');
+    state[c.id].status='tripped';
+  });
+  addLog('LINHA',pid,'—',`Perda de linha de conexão – trip geral ${p.name}`,-prevMW);
+  render(); showToast(`🔌 Perda de linha: ${p.name} desconectada`,'amber');
+}
+
+function simCurtailment() {
+  const all=PARQUES.flatMap(p=>p.circuits.map(c=>({c,pid:p.id})));
+  const on=all.filter(x=>state[x.c.id].status==='on');
+  if(!on.length){alert('Nenhum circuito online.');return;}
+  // Curtail a random parque by 30%
+  const pids=['D3','D5','D6','D7','D8'];
+  const pid=pids[Math.floor(Math.random()*pids.length)];
+  simCurtailParque(pid);
+}
+
+function simCurtailParque(pid) {
+  const p=PARQUES.find(x=>x.id===pid);
+  const prevMW=calcParqueMW(pid);
+  p.circuits.forEach(c=>{
+    if(state[c.id].status!=='on') return;
+    const n=c.wtgs.length; const curtN=Math.floor(n*0.3);
+    state[c.id].wtgs=state[c.id].wtgs.map((w,i)=>{
+      if(w==='fault'||w==='tripped') return w;
+      return i>=n-curtN?'curtailed':'on';
+    });
+    updateCircuitStatus(c.id);
+  });
+  const newMW=calcParqueMW(pid);
+  addLog('CURTAILMENT',pid,'—',`Despacho ONS: curtailment 30% em ${p.name}`,newMW-prevMW);
+  render(); showToast(`↓ Curtailment aplicado: ${p.name}`,'blue');
+}
+
+function clearFaults() {
+  PARQUES.forEach(p=>p.circuits.forEach(c=>{
+    const s=state[c.id];
+    s.wtgs=s.wtgs.map(w=>(w==='fault'||w==='tripped'||w==='curtailed')?'off':w);
+    if(!s.breaker){s.breaker=true;}
+    s.curtailed=false;
+    updateCircuitStatus(c.id);
+  }));
+  Object.keys(trafoState).forEach(tid=>{
+    if(trafoState[tid].status==='fault'){trafoState[tid].status='on';trafoState[tid].brk=true;}
+  });
+  addLog('NORMAL','—','—','Falhas limpas – sistema normalizado',0);
+  render();
+}
+
+// Auto simulation
+function toggleAutoSim() {
+  const btn=document.getElementById('btn-autosim');
+  const badge=document.getElementById('sim-badge');
+  if(autoSimInterval){
+    clearInterval(autoSimInterval); autoSimInterval=null;
+    btn.classList.remove('active'); badge.classList.remove('active');
+  } else {
+    autoSimInterval=setInterval(()=>{
+      // Random wind variations
+      Object.keys(wind).forEach(pid=>{
+        wind[pid]=Math.max(0,Math.min(25,wind[pid]+(Math.random()-0.5)*1.5));
+        applyWind(pid);
+      });
+      // Occasional random event (10% chance per tick)
+      if(Math.random()<0.10){
+        const events=[simFaultWTG,simCurtailment];
+        events[Math.floor(Math.random()*events.length)]();
+      }
+      render();
+    },3000);
+    btn.classList.add('active'); badge.classList.add('active');
+    addLog('NORMAL','—','—','Simulação automática iniciada',0);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════
+function calcCircuitMW(cid) {
+  const c=PARQUES.flatMap(p=>p.circuits).find(x=>x.id===cid);
+  const on=state[cid].wtgs.filter(w=>w==='on').length;
+  return c.mw*(on/c.wtgs.length);
+}
+function calcParqueMW(pid) {
+  const p=PARQUES.find(x=>x.id===pid);
+  return p.circuits.reduce((s,c)=>s+calcCircuitMW(c.id),0);
+}
+function calcSEMW(pids) {
+  return pids.reduce((s,pid)=>s+calcParqueMW(pid),0);
+}
+function updateStats() {
+  let totalMW=0,onWtgs=0,allWtgs=0,curtMW=0;
+  PARQUES.forEach(p=>p.circuits.forEach(c=>{
+    totalMW+=calcCircuitMW(c.id);
+    onWtgs+=state[c.id].wtgs.filter(w=>w==='on').length;
+    allWtgs+=c.wtgs.length;
+    const curt=state[c.id].wtgs.filter(w=>w==='curtailed').length;
+    curtMW+=c.mw*(curt/c.wtgs.length);
+  }));
+  document.getElementById('stat-mw').textContent=totalMW.toFixed(1).replace('.',',');
+  document.getElementById('stat-wtg').textContent=onWtgs;
+  document.getElementById('stat-disp').textContent=allWtgs>0?Math.round(onWtgs/allWtgs*100)+'%':'0%';
+  document.getElementById('stat-curtail').textContent=curtMW.toFixed(1).replace('.',',');
+}
+
+// ═══════════════════════════════════════════════════
+// EVENT LOG
+// ═══════════════════════════════════════════════════
+function addLog(tipo,parque,elemento,desc,deltaMW) {
+  const now=new Date();
+  const ts=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  eventLog.unshift({ts,tipo,parque,elemento,desc,deltaMW});
+  if(eventLog.length>200) eventLog.pop();
+  if(['FALHA','TRAFO','LINHA'].includes(tipo)){
+    alarmCount++;
+    const b=document.getElementById('log-badge');
+    b.textContent=alarmCount; b.style.display='inline';
+  }
+  const logTab=document.querySelector('.tab.active');
+  if(logTab&&logTab.id==='tab-log') renderLog();
+}
+
+function setLogFilter(f) {
+  logFilter=f;
+  document.querySelectorAll('.log-filter').forEach(el=>el.classList.remove('active'));
+  document.getElementById('lf-'+f).classList.add('active');
+  renderLog();
+}
+
+function renderLog() {
+  alarmCount=0;
+  const b=document.getElementById('log-badge'); b.style.display='none';
+  const filtered=logFilter==='ALL'?eventLog:eventLog.filter(e=>e.tipo===logFilter);
+  document.getElementById('log-count').textContent=filtered.length+' evento'+( filtered.length!==1?'s':'');
+  const empty=document.getElementById('log-empty');
+  const tbody=document.getElementById('log-tbody');
+  if(!filtered.length){empty.style.display='block';tbody.innerHTML='';return;}
+  empty.style.display='none';
+  tbody.innerHTML=filtered.map(e=>`
+    <tr>
+      <td style="font-family:monospace;color:var(--text3);white-space:nowrap;">${e.ts}</td>
+      <td><span class="log-tag ${e.tipo}">${e.tipo}</span></td>
+      <td>${e.parque}</td>
+      <td style="font-family:monospace;color:var(--blue);">${e.elemento||'—'}</td>
+      <td>${e.desc}</td>
+      <td style="font-family:monospace;font-weight:600;color:${e.deltaMW<0?'var(--red)':e.deltaMW>0?'var(--green)':'var(--text3)'};">
+        ${e.deltaMW!==0?(e.deltaMW>0?'+':'')+e.deltaMW.toFixed(1)+' MW':'—'}
+      </td>
+    </tr>`).join('');
+}
+
+function clearLog() { eventLog=[]; alarmCount=0; document.getElementById('log-badge').style.display='none'; renderLog(); }
+
+// ═══════════════════════════════════════════════════
+// PANELS
+// ═══════════════════════════════════════════════════
+function openCircuitPanel(circId) {
+  const c=PARQUES.flatMap(p=>p.circuits).find(x=>x.id===circId);
+  const s=state[circId];
+  const onCount=s.wtgs.filter(w=>w==='on').length;
+  const curtCount=s.wtgs.filter(w=>w==='curtailed').length;
+  const onMW=(c.mw*onCount/c.wtgs.length).toFixed(2);
+  const statusLabel=s.status==='on'?'✅ Online':s.status==='fault'?'🔴 Falha':s.status==='tripped'?'🟡 Trip':'⚫ Offline';
+  const pct=windToPower(wind[PARQUES.find(p=>p.circuits.some(x=>x.id===circId)).id]);
+  document.getElementById('panel-title').textContent='Circuito '+circId;
+  document.getElementById('panel-content').innerHTML=`
+    <div class="panel-row"><span class="key">ID</span><span class="val">${circId}</span></div>
+    <div class="panel-row"><span class="key">Parque / SE</span><span class="val">${c.label}</span></div>
+    <div class="panel-row"><span class="key">Capacidade</span><span class="val">${c.mw.toFixed(1)} MW</span></div>
+    <div class="panel-row"><span class="key">Geração atual</span><span class="val" style="color:var(--green)">${onMW} MW</span></div>
+    <div class="panel-row"><span class="key">WTGs online</span><span class="val">${onCount}/${c.wtgs.length}</span></div>
+    ${curtCount>0?`<div class="panel-row"><span class="key">WTGs curtailed</span><span class="val" style="color:#79c0ff">${curtCount}</span></div>`:''}
+    <div class="panel-row"><span class="key">Fator de vento</span><span class="val" style="color:#39d353">${Math.round(pct*100)}%</span></div>
+    <div class="panel-row"><span class="key">Disjuntor</span><span class="val" style="color:${s.breaker?'var(--green)':'var(--amber)'}">${s.breaker?'Fechado':'Aberto'}</span></div>
+    <div class="panel-row"><span class="key">Status</span><span class="val">${statusLabel}</span></div>
+    <div class="panel-actions">
+      <button class="panel-btn green" onclick="setCircuitAll('${circId}','on')">▶ Ligar todos WTGs</button>
+      <button class="panel-btn red" onclick="setCircuitAll('${circId}','off')">■ Desligar todos WTGs</button>
+      <button class="panel-btn amber" onclick="tripCircuit('${circId}')">⚡ Trip disjuntor</button>
+      <button class="panel-btn blue" onclick="curtailCircuit('${circId}')">↓ Curtailment 30%</button>
+      <button class="panel-btn" style="border-color:#79c0ff;color:#79c0ff;background:#0d1e2e" onclick="closePanel();activeCirId='${circId}';showTab('unifilar-cir')">🔌 Ver Unifilar Circuito</button>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--text3);">WTGs individuais:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+      ${s.wtgs.map((w,i)=>{
+        const label=c.wtgs[i]; const num=label.split('-').pop();
+        const bc=w==='on'?'var(--green)':w==='fault'?'var(--red)':w==='curtailed'?'var(--blue)':w==='tripped'?'var(--amber)':'var(--border)';
+        const bg=w==='on'?'var(--green-dim)':w==='fault'?'var(--red-dim)':w==='curtailed'?'var(--blue-dim)':w==='tripped'?'var(--amber-dim)':'var(--bg3)';
+        return `<div onclick="toggleWtgPanel('${circId}',${i})" title="${label}" style="width:40px;min-height:38px;border-radius:5px;border:1.5px solid ${bc};background:${bg};color:${bc};display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8px;cursor:pointer;padding:2px;text-align:center;line-height:1.3;">
+          <span style="font-weight:700;font-size:10px;">${num}</span>
+          <span style="font-size:6px;opacity:.7">${label.replace('-'+num,'')}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  document.getElementById('side-panel').classList.add('open');
+}
+
+function openTrafoPanel(tid,seId) {
+  const se=SE_DATA[seId]; const t=se.trafos.find(x=>x.id===tid);
+  const ts=trafoState[tid];
+  document.getElementById('panel-title').textContent=t.label+' – '+se.title;
+  document.getElementById('panel-content').innerHTML=`
+    <div class="panel-row"><span class="key">Equipamento</span><span class="val">${t.label}</span></div>
+    <div class="panel-row"><span class="key">Capacidade</span><span class="val">${t.spec}</span></div>
+    <div class="panel-row"><span class="key">Tensão</span><span class="val">${t.tensao}</span></div>
+    <div class="panel-row"><span class="key">Disjuntor</span><span class="val" style="color:${ts.brk?'var(--green)':'var(--amber)'}">${ts.brk?'Fechado':'Aberto'}</span></div>
+    <div class="panel-row"><span class="key">Status</span><span class="val" style="color:${ts.status==='on'?'var(--green)':ts.status==='fault'?'var(--red)':'var(--amber)'}">${ts.status==='on'?'● Energizado':ts.status==='fault'?'⚠ Falha':'○ Desligado'}</span></div>
+    <div class="panel-actions">
+      <button class="panel-btn green" onclick="setTrafo('${tid}','on')">▶ Energizar trafo</button>
+      <button class="panel-btn amber" onclick="setTrafo('${tid}','off')">■ Desligar trafo</button>
+      <button class="panel-btn red" onclick="setTrafoFault('${tid}','${seId}')">⚠ Simular falha</button>
+    </div>`;
+  document.getElementById('side-panel').classList.add('open');
+}
+
+function setTrafo(tid,st) {
+  trafoState[tid].status=st; trafoState[tid].brk=st==='on';
+  render(); 
+  const seId=Object.keys(SE_DATA).find(k=>SE_DATA[k].trafos.some(t=>t.id===tid));
+  const t=SE_DATA[seId].trafos.find(x=>x.id===tid);
+  addLog('TRAFO',seId,tid,`${t.label} ${st==='on'?'energizado':'desligado manualmente'}`,0);
+  openTrafoPanel(tid,seId);
+}
+function setTrafoFault(tid,seId) {
+  trafoState[tid].status='fault'; trafoState[tid].brk=false;
+  const t=SE_DATA[seId].trafos.find(x=>x.id===tid);
+  addLog('TRAFO',seId,tid,`Falha simulada em ${t.label}`,0);
+  render(); openTrafoPanel(tid,seId);
+}
+
+function setCircuitAll(circId,st) {
+  state[circId].wtgs=Array(state[circId].wtgs.length).fill(st==='on'?'on':'off');
+  state[circId].breaker=st==='on'; state[circId].curtailed=false;
+  updateCircuitStatus(circId); render(); openCircuitPanel(circId);
+}
+function tripCircuit(circId) {
+  state[circId].breaker=false;
+  state[circId].wtgs=state[circId].wtgs.map(()=>'tripped');
+  state[circId].status='tripped'; state[circId].curtailed=false;
+  addLog('TRIP',PARQUES.find(p=>p.circuits.some(c=>c.id===circId)).id,circId,'Trip manual do disjuntor',0);
+  render(); openCircuitPanel(circId);
+}
+function curtailCircuit(circId) {
+  const c=PARQUES.flatMap(p=>p.circuits).find(x=>x.id===circId);
+  const n=c.wtgs.length; const curtN=Math.floor(n*0.3);
+  state[circId].wtgs=state[circId].wtgs.map((w,i)=>{
+    if(w==='fault'||w==='tripped') return w;
+    return i>=n-curtN?'curtailed':'on';
+  });
+  updateCircuitStatus(circId);
+  addLog('CURTAILMENT',PARQUES.find(p=>p.circuits.some(x=>x.id===circId)).id,circId,'Curtailment manual 30%',0);
+  render(); openCircuitPanel(circId);
+}
+function toggleWtgPanel(circId,idx) { toggleWtg({stopPropagation:()=>{}},circId,idx); openCircuitPanel(circId); }
+function closePanel() { document.getElementById('side-panel').classList.remove('open'); }
+
+function showToast(msg,color) {
+  const t=document.getElementById('tooltip');
+  const colors={red:'var(--red)',amber:'var(--amber)',blue:'#79c0ff',green:'var(--green)'};
+  t.textContent=msg; t.style.display='block'; t.style.borderColor=colors[color]||colors.amber;
+  t.style.left='50%'; t.style.top='80px'; t.style.transform='translateX(-50%)';
+  setTimeout(()=>{t.style.display='none';},3500);
+}
+
+// ═══════════════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════════════
+function render() {
+  updateStats();
+  const activeTab=document.querySelector('.tab.active');
+  if(activeTab){ const id=activeTab.id.replace('tab-',''); renderPage(id); }
+}
+
+// ═══════════════════════════════════════════════════
+// UNIFILAR CIRCUITO – SVG LINEAR
+// ═══════════════════════════════════════════════════
+let activeCirId = null;
+
+function renderUnifilarPage() {
+  // Build selector
+  const sel = document.getElementById('unifilar-selector');
+  let html = '';
+  PARQUES.forEach(p => {
+    html += `<span class="upar-label" style="color:${p.color}">${p.name}:</span>`;
+    p.circuits.forEach(c => {
+      html += `<button class="ucir-btn${activeCirId===c.id?' active':''}" onclick="selectCirUnifilar('${c.id}')">${c.id}</button>`;
+    });
+    html += `<div class="ucir-group-sep"></div>`;
+  });
+  sel.innerHTML = html;
+
+  const cid = activeCirId;
+  const container = document.getElementById('unifilar-svg-container');
+  if (!cid) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text3);font-size:13px;">Selecione um circuito acima para ver o diagrama unifilar detalhado.</div>`;
+    return;
+  }
+
+  const c = PARQUES.flatMap(p=>p.circuits).find(x=>x.id===cid);
+  const p = PARQUES.find(px=>px.circuits.some(x=>x.id===cid));
+  if (!c || !c.topology) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text3);">Topologia não disponível para este circuito.</div>`;
+    return;
+  }
+
+  const s = state[cid];
+  const topo = c.topology;
+
+  // Layout constants
+  const NODE_W = 110, NODE_H = 70, WIRE_Y = 60, GAP = 30;
+  const SVG_H = 320;
+  const DIST_SCALE = 0.012; // scale factor for distance lines (visual only)
+
+  // Calculate X positions – first node at left, then proportional distances (capped)
+  const MIN_SEG = 80, MAX_SEG = 220;
+  const segs = [];
+  for (let i=1; i<topo.length; i++) {
+    const raw = topo[i].dist || 100;
+    // log scale for visual balance
+    const seg = Math.min(MAX_SEG, Math.max(MIN_SEG, 60 + Math.log10(raw+1)*38));
+    segs.push(Math.round(seg));
+  }
+
+  const xs = [40];
+  for (let i=0; i<segs.length; i++) xs.push(xs[xs.length-1]+segs[i]+NODE_W);
+  const SVG_W = xs[xs.length-1] + NODE_W + 60;
+
+  // Helper: node state color
+  function nodeColor(node) {
+    if (node.type==='SE') return '#388bfd';
+    if (node.type==='CJ') return '#d29922';
+    if (!s.breaker) return '#656d76';
+    const idx = c.wtgs.indexOf(node.wtg);
+    if (idx<0) return '#656d76';
+    const ws = s.wtgs[idx];
+    if (ws==='on') return '#3fb950';
+    if (ws==='fault') return '#f85149';
+    if (ws==='tripped') return '#d29922';
+    if (ws==='curtailed') return '#388bfd';
+    return '#656d76';
+  }
+
+  function nodeBg(node) {
+    const col = nodeColor(node);
+    const map = {'#3fb950':'#1a4020','#f85149':'#3d1515','#d29922':'#3d2e0a','#388bfd':'#0d2244','#656d76':'#1c2330'};
+    return map[col]||'#1c2330';
+  }
+
+  // Build SVG
+  let svgParts = [];
+  svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" style="background:#161b22;font-family:'Segoe UI',sans-serif;">`);
+
+  // Title bar
+  svgParts.push(`<rect x="0" y="0" width="${SVG_W}" height="32" fill="#1c2330"/>`)
+  svgParts.push(`<text x="12" y="21" font-size="13" font-weight="700" fill="${p.color}">${c.id} – ${c.label}</text>`);
+  svgParts.push(`<text x="${SVG_W-12}" y="21" font-size="11" fill="#8b949e" text-anchor="end">${c.mw.toFixed(1)} MW inst. · ${c.wtgs.length} WTGs · 34,5 kV</text>`);
+
+  const BASE_Y = 50; // top of node boxes
+  const CY = BASE_Y + NODE_H/2; // center Y for wires
+
+  // Draw wire backbone + distance labels
+  for (let i=0; i<topo.length-1; i++) {
+    const x1 = xs[i] + NODE_W;
+    const x2 = xs[i+1];
+    const midX = (x1+x2)/2;
+    const dist = topo[i+1].dist||0;
+    const segColor = (topo[i+1].type==='SU') ? nodeColor(topo[i+1]) : '#444c56';
+
+    svgParts.push(`<line x1="${x1}" y1="${CY}" x2="${x2}" y2="${CY}" stroke="${segColor}" stroke-width="2.5" stroke-dasharray="${topo[i+1].type==='CJ'?'6,3':'none'}"/>`);
+    // Distance label
+    if (dist>0) {
+      svgParts.push(`<rect x="${midX-22}" y="${CY-17}" width="44" height="14" rx="3" fill="#161b22" opacity="0.85"/>`);
+      svgParts.push(`<text x="${midX}" y="${CY-6}" font-size="9" fill="#8b949e" text-anchor="middle">${dist.toLocaleString('pt-BR')} m</text>`);
+    }
+  }
+
+  // Draw nodes
+  topo.forEach((node, i) => {
+    const x = xs[i];
+    const col = nodeColor(node);
+    const bg = nodeBg(node);
+
+    if (node.type === 'SE') {
+      // SE box: bigger, blue
+      svgParts.push(`<rect x="${x}" y="${BASE_Y}" width="${NODE_W}" height="${NODE_H}" rx="6" fill="#0d2244" stroke="#388bfd" stroke-width="2"/>`);
+      svgParts.push(`<text x="${x+NODE_W/2}" y="${BASE_Y+16}" font-size="9" fill="#79c0ff" text-anchor="middle" font-weight="600">SE COLETORA</text>`);
+      svgParts.push(`<text x="${x+NODE_W/2}" y="${BASE_Y+28}" font-size="8" fill="#8b949e" text-anchor="middle">34,5/138 kV</text>`);
+      // Breaker symbol
+      const bx = x+NODE_W/2, by = BASE_Y+42;
+      const brkOpen = !s.breaker;
+      svgParts.push(`<rect x="${bx-8}" y="${by-8}" width="16" height="16" rx="2" fill="${brkOpen?'#3d2e0a':'#1a4020'}" stroke="${brkOpen?'#d29922':'#3fb950'}" stroke-width="1.5"/>`);
+      if (!brkOpen) svgParts.push(`<line x1="${bx-4}" y1="${by}" x2="${bx+4}" y2="${by}" stroke="#3fb950" stroke-width="2"/>`);
+      svgParts.push(`<text x="${x+NODE_W/2}" y="${BASE_Y+62}" font-size="8" fill="#8b949e" text-anchor="middle">${node.id}</text>`);
+
+    } else if (node.type === 'CJ') {
+      // CJ = diamond shape
+      const cx = x+NODE_W/2, cy = BASE_Y+NODE_H/2;
+      const hw = 28, hh = 22;
+      svgParts.push(`<polygon points="${cx},${cy-hh} ${cx+hw},${cy} ${cx},${cy+hh} ${cx-hw},${cy}" fill="#3d2e0a" stroke="#d29922" stroke-width="2"/>`);
+      svgParts.push(`<text x="${cx}" y="${cy+4}" font-size="9" fill="#d29922" text-anchor="middle" font-weight="700">CJ</text>`);
+      svgParts.push(`<text x="${cx}" y="${BASE_Y+NODE_H+14}" font-size="8" fill="#8b949e" text-anchor="middle">${node.label||node.id}</text>`);
+
+    } else if (node.type === 'SU') {
+      // SU box with WTG symbol
+      const idx = c.wtgs.indexOf(node.wtg);
+      const ws = idx>=0 ? s.wtgs[idx] : 'off';
+      const mwNode = (c.mw/c.wtgs.length);
+
+      svgParts.push(`<rect x="${x}" y="${BASE_Y}" width="${NODE_W}" height="${NODE_H}" rx="5" fill="${bg}" stroke="${col}" stroke-width="1.5"/>`);
+      // SU label
+      svgParts.push(`<text x="${x+NODE_W/2}" y="${BASE_Y+11}" font-size="7.5" fill="#8b949e" text-anchor="middle">SU ${node.suType==='fimdelinha'?'FM':'INT'}</text>`);
+      // Trafo symbol (small circle with T)
+      const tx = x+22, ty = BASE_Y+32;
+      svgParts.push(`<circle cx="${tx}" cy="${ty}" r="11" fill="none" stroke="${col}" stroke-width="1.5" opacity="0.7"/>`);
+      svgParts.push(`<circle cx="${tx+8}" cy="${ty}" r="11" fill="none" stroke="${col}" stroke-width="1.5" opacity="0.7"/>`);
+      svgParts.push(`<text x="${tx+4}" y="${ty+3.5}" font-size="7" fill="${col}" text-anchor="middle" font-weight="600">T</text>`);
+      // WTG symbol (circle with cross)
+      const wx = x+NODE_W-22, wy = BASE_Y+32;
+      svgParts.push(`<circle cx="${wx}" cy="${wy}" r="13" fill="${bg}" stroke="${col}" stroke-width="2"/>`);
+      svgParts.push(`<line x1="${wx}" y1="${wy-9}" x2="${wx}" y2="${wy+9}" stroke="${col}" stroke-width="1.5"/>`);
+      svgParts.push(`<line x1="${wx-9}" y1="${wy}" x2="${wx+9}" y2="${wy}" stroke="${col}" stroke-width="1.5"/>`);
+      // Blade fan (simplified)
+      svgParts.push(`<line x1="${wx}" y1="${wy-9}" x2="${wx+7}" y2="${wy-4}" stroke="${col}" stroke-width="1" opacity="0.6"/>`);
+      svgParts.push(`<line x1="${wx}" y1="${wy-9}" x2="${wx-7}" y2="${wy-4}" stroke="${col}" stroke-width="1" opacity="0.6"/>`);
+      // Status & WTG label
+      const wLabel = node.wtg ? node.wtg.split('-').slice(-2).join('-') : '';
+      svgParts.push(`<text x="${x+NODE_W/2}" y="${BASE_Y+58}" font-size="8.5" fill="${col}" text-anchor="middle" font-weight="700">${wLabel}</text>`);
+      svgParts.push(`<text x="${x+NODE_W/2}" y="${BASE_Y+68}" font-size="7.5" fill="${col}" text-anchor="middle">${mwNode.toFixed(2)} MW</text>`);
+
+      // Status indicator at top-right
+      const statusLabels={'on':'ON','off':'OFF','fault':'FALHA','tripped':'TRIP','curtailed':'CURT'};
+      const statusColors={'on':'#3fb950','off':'#656d76','fault':'#f85149','tripped':'#d29922','curtailed':'#388bfd'};
+      svgParts.push(`<rect x="${x+NODE_W-32}" y="${BASE_Y+2}" width="30" height="11" rx="2" fill="${statusColors[ws]||'#656d76'}" opacity="0.9"/>`);
+      svgParts.push(`<text x="${x+NODE_W-17}" y="${BASE_Y+10}" font-size="7" fill="#fff" text-anchor="middle" font-weight="700">${statusLabels[ws]||ws}</text>`);
+    }
+  });
+
+  // Power flow arrow (when energized)
+  if (s.status==='on' || s.status==='curtailed') {
+    const arrowX = xs[0]+NODE_W+10;
+    svgParts.push(`<polygon points="${arrowX},${CY-5} ${arrowX+14},${CY} ${arrowX},${CY+5}" fill="#3fb950" opacity="0.6"/>`);
+  }
+
+  svgParts.push(`</svg>`);
+  container.innerHTML = svgParts.join('');
+}
+
+function selectCirUnifilar(cid) {
+  activeCirId = cid;
+  renderUnifilarPage();
+}
+
+// ═══════════════════════════════════════════════════
+// DRAG-TO-SCROLL (selector + diagram area)
+// ═══════════════════════════════════════════════════
+function enableDragScroll(el) {
+  let isDown = false, startX, scrollLeft;
+  el.addEventListener('mousedown', e => {
+    // Ignora cliques em botões dentro do selector
+    if (e.target.tagName === 'BUTTON') return;
+    isDown = true;
+    el.style.cursor = 'grabbing';
+    startX = e.pageX - el.offsetLeft;
+    scrollLeft = el.scrollLeft;
+  });
+  el.addEventListener('mouseleave', () => { isDown = false; el.style.cursor = 'grab'; });
+  el.addEventListener('mouseup', () => { isDown = false; el.style.cursor = 'grab'; });
+  el.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    el.scrollLeft = scrollLeft - walk;
+  });
+  // Touch support
+  let touchStartX, touchScrollLeft;
+  el.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].pageX - el.offsetLeft;
+    touchScrollLeft = el.scrollLeft;
+  }, {passive:true});
+  el.addEventListener('touchmove', e => {
+    const x = e.touches[0].pageX - el.offsetLeft;
+    el.scrollLeft = touchScrollLeft - (x - touchStartX) * 1.2;
+  }, {passive:true});
+}
+
+// Aplica após render do unifilar (aguarda DOM)
+const _origRenderUnifilar = renderUnifilarPage;
+renderUnifilarPage = function() {
+  _origRenderUnifilar();
+  const sel = document.getElementById('unifilar-selector');
+  const dia = document.querySelector('.unifilar-diagram-area');
+  if (sel && !sel._dragEnabled) { enableDragScroll(sel); sel._dragEnabled = true; }
+  if (dia && !dia._dragEnabled) { enableDragScroll(dia); dia._dragEnabled = true; }
+};
+
+// ═══════════════════════════════════════════════════
+// INIT
+setAll('on');
+PARQUES.forEach(p=>applyWind(p.id));
+render();
+</script>
+</body>
+</html>
